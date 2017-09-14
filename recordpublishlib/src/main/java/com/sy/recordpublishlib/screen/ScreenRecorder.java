@@ -9,6 +9,7 @@ import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.media.projection.MediaProjection;
+import android.os.Binder;
 import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
@@ -18,8 +19,10 @@ import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.Surface;
 
+import com.sy.recordpublishlib.bean.RecorderBean;
 import com.sy.recordpublishlib.utils.LogUtil;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -31,11 +34,8 @@ import static com.sy.recordpublishlib.utils.LogUtil.TAG;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-public class ScreenRecorder extends Service{
-    private int mWidth;
-    private int mHeight;
-    private int mBitrate;
-    private int mDip;
+public class ScreenRecorder {
+    private RecorderBean mBean;
     private MediaProjection mMediaoproj;
     private VirtualDisplay mVirtualDisplay;
 
@@ -55,22 +55,19 @@ public class ScreenRecorder extends Service{
     private static final int IFRAME_INTERVAL = 2; // 2 seconds between I-frames
     private static final int TIMEOUT_US = 10000;
 
-    public ScreenRecorder(int width, int height, int bitrate, int dpi,MediaProjection mp) {
-        this.mWidth = width;
-        this.mHeight = height;
-        this.mBitrate = bitrate;
-        this.mDip = dpi;
+    public ScreenRecorder(RecorderBean bean, MediaProjection mp) {
+        this.mBean = bean;
         this.mMediaoproj = mp;
     }
 
-    public ScreenRecorder(int width, int height, int bitrate, int dpi,MediaProjection mp,String videoPath) {
-        this(width,height,bitrate,dpi,mp);
+    public ScreenRecorder(RecorderBean bean,MediaProjection mp,String videoPath) {
+        this(bean,mp);
         this.mVideoPath = videoPath;
         this.isCacheSave = true;
     }
 
-    public ScreenRecorder(int width, int height, int bitrate, int dpi,MediaProjection mp,boolean isCaccheSave) {
-        this(width,height,bitrate,dpi,mp);
+    public ScreenRecorder(RecorderBean bean,MediaProjection mp,boolean isCaccheSave) {
+        this(bean,mp);
         this.isCacheSave = isCaccheSave;
     }
 
@@ -79,12 +76,13 @@ public class ScreenRecorder extends Service{
      */
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     private void prepareEncoder() throws IOException {
-        mVideoPath = Environment.getExternalStorageState() + "/" + TAG + System.currentTimeMillis() + ".mp4";
+//        mVideoPath = Environment.getExternalStorageDirectory() + "/" + TAG + "/" + System.currentTimeMillis() + ".mp4";
+        mVideoPath = Environment.getExternalStorageDirectory() + "/" + System.currentTimeMillis() + ".mp4";
 
-        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, mWidth, mHeight);
+        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, mBean.getWidth(), mBean.getHeight());
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
                 MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
-        format.setInteger(MediaFormat.KEY_BIT_RATE, mBitrate);
+        format.setInteger(MediaFormat.KEY_BIT_RATE, mBean.getBitrate());
         format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
         format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, IFRAME_INTERVAL);
 
@@ -110,7 +108,7 @@ public class ScreenRecorder extends Service{
                 public void run() {
                     super.run();
                     LogUtil.e("start startRecord");
-                    start();
+                    toStart();
                 }
             }.start();
         } catch (IOException e) {
@@ -149,9 +147,9 @@ public class ScreenRecorder extends Service{
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void start() {
+    private void toStart() {
         try {
-            //报错mp4
+            //保存mp4
             mMuxer = new MediaMuxer(mVideoPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             recordVirtualDisplay();
         } catch (IOException e) {
@@ -175,7 +173,7 @@ public class ScreenRecorder extends Service{
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void virtualDisplay() {
-        mVirtualDisplay = mMediaoproj.createVirtualDisplay("record_screen", mWidth, mHeight, mDip,
+        mVirtualDisplay = mMediaoproj.createVirtualDisplay("record_screen", mBean.getWidth(), mBean.getHeight(), mBean.getDpi(),
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mSurface, null, null);
     }
 
@@ -246,18 +244,5 @@ public class ScreenRecorder extends Service{
         mMuxer.start();
         mMuxerStarted = true;
         LogUtil.d("started media muxer, videoIndex=" + mVideoTrackIndex);
-    }
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        release();
     }
 }
