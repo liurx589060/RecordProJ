@@ -3,10 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/RecordProJ.iml" filepath="$PROJECT_DIR$/RecordProJ.iml" />
-      <module fileurl="file://$PROJECT_DIR$/RecordProJ.iml" filepath="$PROJECT_DIR$/RecordProJ.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/recordpublishlib/recordpublishlib.iml" filepath="$PROJECT_DIR$/recordpublishlib/recordpublishlib.iml" />
       <module fileurl="file://$PROJECT_DIR$/recordpublishlib/recordpublishlib.iml" filepath="$PROJECT_DIR$/recordpublishlib/recordpublishlib.iml" />
     </modules>
   </component>

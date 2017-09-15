@@ -11,7 +11,7 @@ import java.net.UnknownHostException;
  * Created by daven.liu on 2017/9/14 0014.
  */
 
-public class LogUtil {
+public class LogTools {
     public static final String TAG = "recordPublishLib";
     private static boolean enableLog = true;
 
@@ -20,7 +20,7 @@ public class LogUtil {
     }
 
     public static void setEnableLog(boolean enableLog) {
-        LogUtil.enableLog = enableLog;
+        LogTools.enableLog = enableLog;
     }
 
     public static void e(String content) {

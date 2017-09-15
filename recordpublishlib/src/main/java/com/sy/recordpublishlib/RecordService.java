@@ -9,6 +9,8 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 
+import com.sy.recordpublishlib.audio.RESAudioClient;
+import com.sy.recordpublishlib.audio.RESCoreParameters;
 import com.sy.recordpublishlib.bean.RecorderBean;
 import com.sy.recordpublishlib.screen.ScreenRecorder;
 
@@ -18,6 +20,8 @@ import com.sy.recordpublishlib.screen.ScreenRecorder;
 
 public class RecordService extends Service {
     private ScreenRecorder mScreenRecorder;
+    private RESAudioClient mAudioRecorder;
+    private RESCoreParameters coreParameters;
 
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -25,6 +29,40 @@ public class RecordService extends Service {
         if(mScreenRecorder == null) {
             mScreenRecorder = new ScreenRecorder(bean,mj);
         }
+
+        if(mAudioRecorder == null) {
+            coreParameters = new RESCoreParameters();
+            mAudioRecorder = new RESAudioClient(coreParameters);
+        }
+        mAudioRecorder.start();
+        mScreenRecorder.startRecord();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public void startRecord(RecorderBean bean, MediaProjection mj, String videoPath) {
+        if(mScreenRecorder == null) {
+            mScreenRecorder = new ScreenRecorder(bean,mj,videoPath);
+        }
+
+        if(mAudioRecorder == null) {
+            coreParameters = new RESCoreParameters();
+            mAudioRecorder = new RESAudioClient(coreParameters);
+        }
+        mAudioRecorder.start();
+        mScreenRecorder.startRecord();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public void startRecord(RecorderBean bean, MediaProjection mj, boolean isCacheSave) {
+        if(mScreenRecorder == null) {
+            mScreenRecorder = new ScreenRecorder(bean,mj,isCacheSave);
+        }
+
+        if(mAudioRecorder == null) {
+            coreParameters = new RESCoreParameters();
+            mAudioRecorder = new RESAudioClient(coreParameters);
+        }
+        mAudioRecorder.start();
         mScreenRecorder.startRecord();
     }
 
@@ -32,6 +70,12 @@ public class RecordService extends Service {
     public void stopRecord() {
         if(mScreenRecorder != null) {
             mScreenRecorder.stopRecord();
+            mScreenRecorder = null;
+        }
+
+        if(mAudioRecorder != null) {
+            mAudioRecorder.stop();
+            mAudioRecorder = null;
         }
     }
 

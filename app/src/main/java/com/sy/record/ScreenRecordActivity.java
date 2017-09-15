@@ -9,6 +9,7 @@ import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -71,7 +72,10 @@ public class ScreenRecordActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         MediaProjection mMediaProjection = mMediaProjectionManager.getMediaProjection(resultCode, data);
-        mRecordService.startRecord(new RecorderBean(),mMediaProjection);
+        RecorderBean bean = new RecorderBean();
+        bean.setWidth(720);
+        bean.setHeight(1280);
+        mRecordService.startRecord(bean,mMediaProjection, true);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
