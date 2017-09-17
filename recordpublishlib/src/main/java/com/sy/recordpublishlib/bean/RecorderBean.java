@@ -1,5 +1,11 @@
 package com.sy.recordpublishlib.bean;
 
+import android.app.Activity;
+import android.content.Context;
+import android.util.DisplayMetrics;
+
+import com.sy.recordpublishlib.RecordService;
+
 /**
  * Created by daven.liu on 2017/9/13 0013.
  */
@@ -11,6 +17,14 @@ public class RecorderBean {
     private int fps = 30;
     private int dpi = 1;
     private String rtmpAddr;
+
+    public RecorderBean(Activity context) {
+        DisplayMetrics metric = new DisplayMetrics();
+        context.getWindowManager().getDefaultDisplay().getMetrics(metric);
+        this.dpi = metric.densityDpi;
+    }
+
+    public RecorderBean() {}
 
     public int getWidth() {
         return width;

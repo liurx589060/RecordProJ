@@ -72,7 +72,7 @@ public class ScreenRecordActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         MediaProjection mMediaProjection = mMediaProjectionManager.getMediaProjection(resultCode, data);
-        RecorderBean bean = new RecorderBean();
+        RecorderBean bean = new RecorderBean(this);
         bean.setWidth(720);
         bean.setHeight(1280);
         mRecordService.startRecord(bean,mMediaProjection, true);

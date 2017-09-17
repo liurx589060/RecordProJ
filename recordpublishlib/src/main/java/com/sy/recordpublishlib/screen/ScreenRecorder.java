@@ -38,7 +38,6 @@ public class ScreenRecorder {
     private MediaCodec.BufferInfo mBufferInfo = new MediaCodec.BufferInfo();
     private boolean mMuxerStarted = false;
     private int mVideoTrackIndex = -1;
-    private String mVideoPath;
 
     // parameters for the encoder
     private static final String MIME_TYPE = "video/avc"; // H.264 Advanced Video Coding
@@ -58,9 +57,9 @@ public class ScreenRecorder {
         mMuxer.setVideoPath(videoPath);
     }
 
-    public ScreenRecorder(RecorderBean bean,MediaProjection mp,boolean isCaccheSave) {
+    public ScreenRecorder(RecorderBean bean,MediaProjection mp,boolean isCacheSave) {
         this(bean,mp);
-        mMuxer.setCacheSave(isCaccheSave);
+        mMuxer.setCacheSave(isCacheSave);
     }
 
     /**
@@ -68,10 +67,6 @@ public class ScreenRecorder {
      */
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     private void prepareEncoder() throws IOException {
-        if(mVideoPath == null) {
-            mVideoPath = Environment.getExternalStorageDirectory() + "/" + System.currentTimeMillis() + ".mp4";
-        }
-
         MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, mBean.getWidth(), mBean.getHeight());
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
                 MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
@@ -233,8 +228,9 @@ public class ScreenRecorder {
 
         LogTools.d("output format changed.\n new format: " + newFormat.toString());
         if(mMuxer != null) {
-            mVideoTrackIndex = mMuxer.addTrack(newFormat);
-            mMuxer.start();
+            mVideoTrackIndex = mMuxer.addTrack(MediaMuxerUtil.MEDIA_VIDEO,newFormat);
+            Log.e("yy","videoTrack=" + mVideoTrackIndex);
+//            mMuxer.start();
         }
         mMuxerStarted = true;
         LogTools.d("started media muxer, videoIndex=" + mVideoTrackIndex);

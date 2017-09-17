@@ -34,8 +34,8 @@ public class RecordService extends Service {
             coreParameters = new RESCoreParameters();
             mAudioRecorder = new RESAudioClient(coreParameters);
         }
-        mAudioRecorder.start();
         mScreenRecorder.startRecord();
+        mAudioRecorder.start();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -48,8 +48,8 @@ public class RecordService extends Service {
             coreParameters = new RESCoreParameters();
             mAudioRecorder = new RESAudioClient(coreParameters);
         }
-        mAudioRecorder.start();
         mScreenRecorder.startRecord();
+        mAudioRecorder.start();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -62,8 +62,8 @@ public class RecordService extends Service {
             coreParameters = new RESCoreParameters();
             mAudioRecorder = new RESAudioClient(coreParameters);
         }
-        mAudioRecorder.start();
         mScreenRecorder.startRecord();
+        mAudioRecorder.start();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
