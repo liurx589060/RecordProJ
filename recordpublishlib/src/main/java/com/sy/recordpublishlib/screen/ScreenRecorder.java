@@ -180,9 +180,6 @@ public class ScreenRecorder {
                 } catch (InterruptedException e) {
                 }
             } else if (index >= 0) {//有效输出
-                if (!mMuxerStarted) {
-                    throw new IllegalStateException("MediaMuxer dose not call addTrack(format) ");
-                }
                 encodeToVideoTrack(index);
                 mEncoder.releaseOutputBuffer(index, false);
             }
@@ -211,7 +208,7 @@ public class ScreenRecorder {
         if (encodedData != null) {
             encodedData.position(mBufferInfo.offset);
             encodedData.limit(mBufferInfo.offset + mBufferInfo.size);
-            if(mMuxer != null) {
+            if(mMuxer != null && mMuxer.isStarted()) {
                 mMuxer.writeSampleData(mVideoTrackIndex, encodedData, mBufferInfo);//写入
             }
             LogTools.d("sent " + mBufferInfo.size + " bytes to muxer...");
@@ -221,9 +218,6 @@ public class ScreenRecorder {
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     private void resetOutputFormat() {
         // should happen before receiving buffers, and should only happen once
-        if (mMuxerStarted) {
-            throw new IllegalStateException("output format already changed!");
-        }
         MediaFormat newFormat = mEncoder.getOutputFormat();
 
         LogTools.d("output format changed.\n new format: " + newFormat.toString());

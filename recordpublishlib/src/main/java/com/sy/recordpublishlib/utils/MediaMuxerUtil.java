@@ -25,6 +25,7 @@ public class MediaMuxerUtil {
     public static final int MEDIA_AUDIO = 0x12;
     private boolean isAudioAdd;
     private boolean isVideoAdd;
+    private boolean isStarted;
 
     public static MediaMuxerUtil getInstance() {
         if(instance == null) {
@@ -73,8 +74,10 @@ public class MediaMuxerUtil {
             isAudioAdd = true;
         }
 
-        if(isReadyStart()) {
-            start();
+        synchronized (this) {
+            if(isReadyStart()) {
+                start();
+            }
         }
         return index;
     }
@@ -91,6 +94,7 @@ public class MediaMuxerUtil {
             mediaMuxer = null;
             isAudioAdd = false;
             isVideoAdd = false;
+            isStarted = false;
         }
     }
 
@@ -99,11 +103,16 @@ public class MediaMuxerUtil {
         if(!isCacheSave) return;
         if(mediaMuxer != null) {
             mediaMuxer.start();
+            isStarted = true;
             LogTools.e("MediaMuxer---start");
         }
     }
 
     public void release() {
         instance = null;
+    }
+
+    public boolean isStarted() {
+        return isStarted;
     }
 }

@@ -9,8 +9,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 
-import com.sy.recordpublishlib.audio.RESAudioClient;
-import com.sy.recordpublishlib.audio.RESCoreParameters;
+import com.sy.recordpublishlib.audio.AudioRecorder;
 import com.sy.recordpublishlib.bean.RecorderBean;
 import com.sy.recordpublishlib.screen.ScreenRecorder;
 
@@ -20,8 +19,7 @@ import com.sy.recordpublishlib.screen.ScreenRecorder;
 
 public class RecordService extends Service {
     private ScreenRecorder mScreenRecorder;
-    private RESAudioClient mAudioRecorder;
-    private RESCoreParameters coreParameters;
+    private AudioRecorder mAudioRecorder;
 
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -31,11 +29,10 @@ public class RecordService extends Service {
         }
 
         if(mAudioRecorder == null) {
-            coreParameters = new RESCoreParameters();
-            mAudioRecorder = new RESAudioClient(coreParameters);
+            mAudioRecorder = new AudioRecorder();
         }
         mScreenRecorder.startRecord();
-        mAudioRecorder.start();
+        mAudioRecorder.startRecord();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -45,11 +42,10 @@ public class RecordService extends Service {
         }
 
         if(mAudioRecorder == null) {
-            coreParameters = new RESCoreParameters();
-            mAudioRecorder = new RESAudioClient(coreParameters);
+            mAudioRecorder = new AudioRecorder();
         }
         mScreenRecorder.startRecord();
-        mAudioRecorder.start();
+        mAudioRecorder.startRecord();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -59,11 +55,10 @@ public class RecordService extends Service {
         }
 
         if(mAudioRecorder == null) {
-            coreParameters = new RESCoreParameters();
-            mAudioRecorder = new RESAudioClient(coreParameters);
+            mAudioRecorder = new AudioRecorder();
         }
         mScreenRecorder.startRecord();
-        mAudioRecorder.start();
+        mAudioRecorder.startRecord();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
@@ -74,7 +69,7 @@ public class RecordService extends Service {
         }
 
         if(mAudioRecorder != null) {
-            mAudioRecorder.stop();
+            mAudioRecorder.stopRecord();
             mAudioRecorder = null;
         }
     }
