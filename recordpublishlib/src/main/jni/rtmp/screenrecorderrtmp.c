@@ -3,7 +3,7 @@
 #include <malloc.h>
 #include "rtmp.h"
 
-JNIEXPORT jlong JNICALL Java_net_yrom_screenrecorder_rtmp_RtmpClient_open
+JNIEXPORT jlong JNICALL Java_com_sy_recordpublishlib_rtmp_RtmpClient_open
  (JNIEnv * env, jobject thiz, jstring url_, jboolean isPublishMode) {
    	const char *url = (*env)->GetStringUTFChars(env, url_, 0);
    	LOGD("RTMP_OPENING:%s",url);
@@ -50,11 +50,11 @@ JNIEXPORT jlong JNICALL Java_net_yrom_screenrecorder_rtmp_RtmpClient_open
 
 
 /*
- * Class:     net_yrom_screenrecorder_rtmp_RtmpClient
+ * Class:     com_sy_recordpublishlib_rtmp_RtmpClient
  * Method:    read
  * Signature: (J[BII)I
  */
-JNIEXPORT jint JNICALL Java_net_yrom_screenrecorder_rtmp_RtmpClient_read
+JNIEXPORT jint JNICALL Java_com_sy_recordpublishlib_rtmp_RtmpClient_read
 (JNIEnv * env, jobject thiz,jlong rtmp, jbyteArray data_, jint offset, jint size) {
 
  	char* data = malloc(size*sizeof(char));
@@ -69,11 +69,11 @@ JNIEXPORT jint JNICALL Java_net_yrom_screenrecorder_rtmp_RtmpClient_read
     return readCount;
 }
 /*
- * Class:     net_yrom_screenrecorder_rtmp_RtmpClient
+ * Class:     com_sy_recordpublishlib_rtmp_RtmpClient
  * Method:    write
  * Signature: (J[BIII)I
  */
-JNIEXPORT jint JNICALL Java_net_yrom_screenrecorder_rtmp_RtmpClient_write
+JNIEXPORT jint JNICALL Java_com_sy_recordpublishlib_rtmp_RtmpClient_write
 (JNIEnv * env, jobject thiz,jlong rtmp, jbyteArray data, jint size, jint type, jint ts) {
  	LOGD("start write");
  	jbyte *buffer = (*env)->GetByteArrayElements(env, data, NULL);
@@ -114,22 +114,22 @@ JNIEXPORT jint JNICALL Java_net_yrom_screenrecorder_rtmp_RtmpClient_write
     }
 }
 /*
- * Class:     net_yrom_screenrecorder_rtmp_RtmpClient
+ * Class:     com_sy_recordpublishlib_rtmp_RtmpClient
  * Method:    close
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_net_yrom_screenrecorder_rtmp_RtmpClient_close
- (JNIEnv * env,jlong rtmp, jobject thiz) {
+JNIEXPORT jint JNICALL Java_com_sy_recordpublishlib_rtmp_RtmpClient_close
+ (JNIEnv * env, jobject thiz, jlong rtmp) {
  	RTMP_Close((RTMP*)rtmp);
  	RTMP_Free((RTMP*)rtmp);
  	return 0;
  }
 /*
- * Class:     net_yrom_screenrecorder_rtmp_RtmpClient
+ * Class:     com_sy_recordpublishlib_rtmp_RtmpClient
  * Method:    getIpAddr
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_net_yrom_screenrecorder_rtmp_RtmpClient_getIpAddr
+JNIEXPORT jstring JNICALL Java_com_sy_recordpublishlib_rtmp_RtmpClient_getIpAddr
 	(JNIEnv * env,jobject thiz,jlong rtmp) {
 	if(rtmp!=0){
 		RTMP* r= (RTMP*)rtmp;
