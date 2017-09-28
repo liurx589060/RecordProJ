@@ -56,30 +56,30 @@ public class MediaMuxerUtil {
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     public int addTrack(int type,MediaFormat format) {
-        if(!isCacheSave || isReadyStart()) return -1;
-        if(mediaMuxer == null) {
-            try {
-                mediaMuxer = new MediaMuxer(videoPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-            } catch (IOException e) {
-                e.printStackTrace();
-                LogTools.e(e.toString());
-                return -1;
-            }
-        }
-
-        int index = mediaMuxer.addTrack(format);
-        if(type == MEDIA_VIDEO) {
-            isVideoAdd = true;
-        }else if(type == MEDIA_AUDIO) {
-            isAudioAdd = true;
-        }
-
         synchronized (this) {
+            if(!isCacheSave || isReadyStart()) return -1;
+            if(mediaMuxer == null) {
+                try {
+                    mediaMuxer = new MediaMuxer(videoPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    LogTools.e(e.toString());
+                    return -1;
+                }
+            }
+
+            int index = mediaMuxer.addTrack(format);
+            if(type == MEDIA_VIDEO) {
+                isVideoAdd = true;
+            }else if(type == MEDIA_AUDIO) {
+                isAudioAdd = true;
+            }
+
             if(isReadyStart()) {
                 start();
             }
+            return index;
         }
-        return index;
     }
 
     private boolean isReadyStart() {

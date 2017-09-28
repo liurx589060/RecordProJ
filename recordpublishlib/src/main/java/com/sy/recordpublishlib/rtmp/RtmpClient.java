@@ -11,6 +11,10 @@ public class RtmpClient {
      * @param isPublishMode
      * @return rtmpPointer ,pointer to native rtmp struct
      */
+    static {
+        System.loadLibrary("screenrecorderrtmp.so");
+    }
+
     public static native long open(String url, boolean isPublishMode);
 
     public static native int read(long rtmpPointer, byte[] data, int offset, int size);
