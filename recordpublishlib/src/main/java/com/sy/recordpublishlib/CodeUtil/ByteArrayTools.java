@@ -1,4 +1,4 @@
-package com.sy.recordpublishlib.utils;
+package com.sy.recordpublishlib.CodeUtil;
 
 /**
  * Created by lake on 16-3-30.

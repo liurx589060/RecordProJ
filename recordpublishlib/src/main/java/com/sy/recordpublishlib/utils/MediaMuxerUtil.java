@@ -19,7 +19,7 @@ import java.nio.ByteBuffer;
 public class MediaMuxerUtil {
     private static MediaMuxerUtil instance = null;
     private MediaMuxer mediaMuxer;
-    private String videoPath = Environment.getExternalStorageDirectory() + "/" + System.currentTimeMillis() + ".mp4";
+    private String videoPath;
     private boolean isCacheSave;
     public static final int MEDIA_VIDEO = 0x11;
     public static final int MEDIA_AUDIO = 0x12;
@@ -40,6 +40,9 @@ public class MediaMuxerUtil {
 
     public void setVideoPath(String videoPath) {
         this.videoPath = videoPath;
+        if(videoPath != null) {
+            isCacheSave = true;
+        }
     }
 
     public void setCacheSave(boolean isCacheSave) {
@@ -48,9 +51,11 @@ public class MediaMuxerUtil {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     public void writeSampleData(int trackIndex, ByteBuffer byteBuf, MediaCodec.BufferInfo bufferInfo) {
-        if(!isCacheSave) return;
-        if(mediaMuxer != null && isReadyStart()) {
-            mediaMuxer.writeSampleData(trackIndex,byteBuf,bufferInfo);
+        synchronized (this) {
+            if(!isCacheSave) return;
+            if(mediaMuxer != null && isReadyStart()) {
+                mediaMuxer.writeSampleData(trackIndex,byteBuf,bufferInfo);
+            }
         }
     }
 

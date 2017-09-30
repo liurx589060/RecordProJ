@@ -11,7 +11,13 @@ import android.support.annotation.RequiresApi;
 
 import com.sy.recordpublishlib.audio.AudioRecorder;
 import com.sy.recordpublishlib.bean.RecorderBean;
+import com.sy.recordpublishlib.rtmp.RESFlvData;
+import com.sy.recordpublishlib.rtmp.RESFlvDataCollecter;
+import com.sy.recordpublishlib.rtmp.RtmpStreamingSender;
 import com.sy.recordpublishlib.screen.ScreenRecorder;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by Administrator on 2017/9/14.
@@ -20,6 +26,8 @@ import com.sy.recordpublishlib.screen.ScreenRecorder;
 public class RecordService extends Service {
     private ScreenRecorder mScreenRecorder;
     private AudioRecorder mAudioRecorder;
+    private ExecutorService executorService;
+    private RtmpStreamingSender streamingSender;
 
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -31,34 +39,25 @@ public class RecordService extends Service {
         if(mAudioRecorder == null) {
             mAudioRecorder = new AudioRecorder();
         }
+        //rtmp推送
+//        executorService = Executors.newCachedThreadPool();
+//        streamingSender = new RtmpStreamingSender();
+//        streamingSender.sendStart(bean.getRtmpAddr());
+//        RESFlvDataCollecter collecter = new RESFlvDataCollecter() {
+//            @Override
+//            public void collect(RESFlvData flvData, int type) {
+//                if(streamingSender != null) {
+//                    streamingSender.sendFood(flvData, type);
+//                }
+//            }
+//        };
+//        //为Video和Audio设置收集器
+//        mScreenRecorder.setCollecter(collecter);
+//        mAudioRecorder.setCollecter(collecter);
+
         mScreenRecorder.startRecord();
         mAudioRecorder.startRecord();
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public void startRecord(RecorderBean bean, MediaProjection mj, String videoPath) {
-        if(mScreenRecorder == null) {
-            mScreenRecorder = new ScreenRecorder(bean,mj,videoPath);
-        }
-
-        if(mAudioRecorder == null) {
-            mAudioRecorder = new AudioRecorder();
-        }
-        mScreenRecorder.startRecord();
-        mAudioRecorder.startRecord();
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public void startRecord(RecorderBean bean, MediaProjection mj, boolean isCacheSave) {
-        if(mScreenRecorder == null) {
-            mScreenRecorder = new ScreenRecorder(bean,mj,isCacheSave);
-        }
-
-        if(mAudioRecorder == null) {
-            mAudioRecorder = new AudioRecorder();
-        }
-        mScreenRecorder.startRecord();
-        mAudioRecorder.startRecord();
+//        executorService.execute(streamingSender);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
@@ -71,6 +70,16 @@ public class RecordService extends Service {
         if(mAudioRecorder != null) {
             mAudioRecorder.stopRecord();
             mAudioRecorder = null;
+        }
+
+        if (streamingSender != null) {
+            streamingSender.sendStop();
+            streamingSender.quit();
+            streamingSender = null;
+        }
+        if (executorService != null) {
+            executorService.shutdown();
+            executorService = null;
         }
     }
 

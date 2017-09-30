@@ -1,6 +1,8 @@
-package com.sy.recordpublishlib.utils;
+package com.sy.recordpublishlib.CodeUtil;
 
 import android.media.MediaFormat;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 
 import java.nio.ByteBuffer;
 
@@ -11,6 +13,7 @@ import java.nio.ByteBuffer;
 public class Packager {
     public static class H264Packager {
 
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         public static byte[] generateAVCDecoderConfigurationRecord(MediaFormat mediaFormat) {
             ByteBuffer SPSByteBuff = mediaFormat.getByteBuffer("csd-0");
             SPSByteBuff.position(4);

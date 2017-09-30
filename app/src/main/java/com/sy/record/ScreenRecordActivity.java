@@ -73,9 +73,9 @@ public class ScreenRecordActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         MediaProjection mMediaProjection = mMediaProjectionManager.getMediaProjection(resultCode, data);
         RecorderBean bean = new RecorderBean(this);
-        bean.setWidth(720);
-        bean.setHeight(1280);
-        mRecordService.startRecord(bean,mMediaProjection, true);
+        bean.setWidth(1280);
+        bean.setHeight(720);
+        mRecordService.startRecord(bean,mMediaProjection);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)

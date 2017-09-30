@@ -5,21 +5,24 @@ import android.hardware.display.VirtualDisplay;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
-import android.media.MediaMuxer;
 import android.media.projection.MediaProjection;
 import android.os.Build;
-import android.os.Environment;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.Surface;
 
+import com.sy.recordpublishlib.CodeUtil.Packager;
 import com.sy.recordpublishlib.bean.RecorderBean;
+import com.sy.recordpublishlib.rtmp.RESFlvData;
+import com.sy.recordpublishlib.rtmp.RESFlvDataCollecter;
 import com.sy.recordpublishlib.utils.LogTools;
 import com.sy.recordpublishlib.utils.MediaMuxerUtil;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.sy.recordpublishlib.rtmp.RESFlvData.FLV_RTMP_PACKET_TYPE_VIDEO;
 
 /**
  * Created by daven.liu on 2017/9/14 0014.
@@ -30,36 +33,27 @@ public class ScreenRecorder {
     private RecorderBean mBean;
     private MediaProjection mMediaoproj;
     private VirtualDisplay mVirtualDisplay;
+    private RESFlvDataCollecter collecter;
 
     private MediaCodec mEncoder;
     private Surface mSurface;
     private MediaMuxerUtil mMuxer;
     private AtomicBoolean mIsQuit = new AtomicBoolean(false);
     private MediaCodec.BufferInfo mBufferInfo = new MediaCodec.BufferInfo();
-    private boolean mMuxerStarted = false;
     private int mVideoTrackIndex = -1;
 
     // parameters for the encoder
     private static final String MIME_TYPE = "video/avc"; // H.264 Advanced Video Coding
-    private static final int FRAME_RATE = 20; // 30 fps
     private static final int IFRAME_INTERVAL = 2; // 2 seconds between I-frames
     private static final int TIMEOUT_US = 10000;
+    private long startTime = 0;
 
     public ScreenRecorder(RecorderBean bean, MediaProjection mp) {
         this.mBean = bean;
         this.mMediaoproj = mp;
         mMuxer = MediaMuxerUtil.getInstance();
-    }
-
-    public ScreenRecorder(RecorderBean bean,MediaProjection mp,String videoPath) {
-        this(bean,mp);
-        mMuxer.setCacheSave(true);
-        mMuxer.setVideoPath(videoPath);
-    }
-
-    public ScreenRecorder(RecorderBean bean,MediaProjection mp,boolean isCacheSave) {
-        this(bean,mp);
-        mMuxer.setCacheSave(isCacheSave);
+        mMuxer.setVideoPath(bean.getVideoPath());
+        mMuxer.setCacheSave(bean.isSaveCache());
     }
 
     /**
@@ -71,7 +65,7 @@ public class ScreenRecorder {
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
                 MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
         format.setInteger(MediaFormat.KEY_BIT_RATE, mBean.getBitrate());
-        format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
+        format.setInteger(MediaFormat.KEY_FRAME_RATE, mBean.getFps());
         format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, IFRAME_INTERVAL);
 
         LogTools.d("created video format: " + format);
@@ -116,7 +110,6 @@ public class ScreenRecorder {
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void release() {
         mIsQuit.set(false);
-        mMuxerStarted = false;
         LogTools.e(" release");
         if (mEncoder != null) {
             mEncoder.stop();
@@ -190,6 +183,10 @@ public class ScreenRecorder {
     private void encodeToVideoTrack(int index) {
         ByteBuffer encodedData = mEncoder.getOutputBuffer(index);
 
+        if (startTime == 0) {
+            startTime = mBufferInfo.presentationTimeUs / 1000;
+        }
+
         if ((mBufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {//是编码需要的特定数据，不是媒体数据
             // The codec config data was pulled out and fed to the muxer when we got
             // the INFO_OUTPUT_FORMAT_CHANGED status.
@@ -211,6 +208,8 @@ public class ScreenRecorder {
             if(mMuxer != null && mMuxer.isStarted()) {
                 mMuxer.writeSampleData(mVideoTrackIndex, encodedData, mBufferInfo);//写入
             }
+            //推送数据
+            sendRealData((mBufferInfo.presentationTimeUs / 1000) - startTime, encodedData);
             LogTools.d("sent " + mBufferInfo.size + " bytes to muxer...");
         }
     }
@@ -226,7 +225,80 @@ public class ScreenRecorder {
             Log.e("yy","videoTrack=" + mVideoTrackIndex);
 //            mMuxer.start();
         }
-        mMuxerStarted = true;
         LogTools.d("started media muxer, videoIndex=" + mVideoTrackIndex);
+        //传送关键帧
+        sendAVCDecoderConfigurationRecord(0, mEncoder.getOutputFormat());
+    }
+
+    /**
+     * 传送关键帧
+     * @param tms
+     * @param format
+     */
+    private void sendAVCDecoderConfigurationRecord(long tms, MediaFormat format) {
+        if(collecter == null) return;
+        byte[] AVCDecoderConfigurationRecord = Packager.H264Packager.generateAVCDecoderConfigurationRecord(format);
+        int packetLen = Packager.FLVPackager.FLV_VIDEO_TAG_LENGTH +
+                AVCDecoderConfigurationRecord.length;
+        byte[] finalBuff = new byte[packetLen];
+        Packager.FLVPackager.fillFlvVideoTag(finalBuff,
+                0,
+                true,
+                true,
+                AVCDecoderConfigurationRecord.length);
+        System.arraycopy(AVCDecoderConfigurationRecord, 0,
+                finalBuff, Packager.FLVPackager.FLV_VIDEO_TAG_LENGTH, AVCDecoderConfigurationRecord.length);
+        RESFlvData resFlvData = new RESFlvData();
+        resFlvData.droppable = false;
+        resFlvData.byteBuffer = finalBuff;
+        resFlvData.size = finalBuff.length;
+        resFlvData.dts = (int) tms;
+        resFlvData.flvTagType = FLV_RTMP_PACKET_TYPE_VIDEO;
+        resFlvData.videoFrameType = RESFlvData.NALU_TYPE_IDR;
+        collecter.collect(resFlvData, FLV_RTMP_PACKET_TYPE_VIDEO);
+
+        Log.e("zz","传送关键帧");
+    }
+
+    /**
+     * 传送真实视频
+     * @param tms
+     * @param realData
+     */
+    private void sendRealData(long tms, ByteBuffer realData) {
+        if(collecter == null) return;
+        int realDataLength = realData.remaining();
+        int packetLen = Packager.FLVPackager.FLV_VIDEO_TAG_LENGTH +
+                Packager.FLVPackager.NALU_HEADER_LENGTH +
+                realDataLength;
+        byte[] finalBuff = new byte[packetLen];
+        realData.get(finalBuff, Packager.FLVPackager.FLV_VIDEO_TAG_LENGTH +
+                        Packager.FLVPackager.NALU_HEADER_LENGTH,
+                realDataLength);
+        int frameType = finalBuff[Packager.FLVPackager.FLV_VIDEO_TAG_LENGTH +
+                Packager.FLVPackager.NALU_HEADER_LENGTH] & 0x1F;
+        Packager.FLVPackager.fillFlvVideoTag(finalBuff,
+                0,
+                false,
+                frameType == 5,
+                realDataLength);
+        RESFlvData resFlvData = new RESFlvData();
+        resFlvData.droppable = true;
+        resFlvData.byteBuffer = finalBuff;
+        resFlvData.size = finalBuff.length;
+        resFlvData.dts = (int) tms;
+        resFlvData.flvTagType = FLV_RTMP_PACKET_TYPE_VIDEO;
+        resFlvData.videoFrameType = frameType;
+        collecter.collect(resFlvData, FLV_RTMP_PACKET_TYPE_VIDEO);
+
+        Log.e("zz","传送真实视频数据");
+    }
+
+    public RESFlvDataCollecter getCollecter() {
+        return collecter;
+    }
+
+    public void setCollecter(RESFlvDataCollecter collecter) {
+        this.collecter = collecter;
     }
 }

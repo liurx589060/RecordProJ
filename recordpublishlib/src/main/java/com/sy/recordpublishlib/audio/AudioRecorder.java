@@ -10,6 +10,7 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
+import com.sy.recordpublishlib.rtmp.RESFlvDataCollecter;
 import com.sy.recordpublishlib.utils.LogTools;
 import com.sy.recordpublishlib.utils.MediaMuxerUtil;
 
@@ -37,6 +38,8 @@ public class AudioRecorder {
     private MediaMuxerUtil mMuxer;//混合器
     private int mAudioTrackIndex = -1;
     private long prevOutputPTSUs = 0;
+
+    private RESFlvDataCollecter collecter;
 
     public AudioRecorder() {
         mMuxer = MediaMuxerUtil.getInstance();
@@ -215,7 +218,6 @@ public class AudioRecorder {
             } else if (encoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
 
                 final MediaFormat format = mMediaCodec.getOutputFormat(); // API >= 16
-                if(mMuxer != null)
                 if (mMuxer != null) {
                     mAudioTrackIndex = mMuxer.addTrack(MediaMuxerUtil.MEDIA_AUDIO,format);
                 }
@@ -335,5 +337,13 @@ public class AudioRecorder {
             audioRecord.release();
             audioRecord = null;
         }
+    }
+
+    public RESFlvDataCollecter getCollecter() {
+        return collecter;
+    }
+
+    public void setCollecter(RESFlvDataCollecter collecter) {
+        this.collecter = collecter;
     }
 }
